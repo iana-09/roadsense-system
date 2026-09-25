@@ -1,0 +1,24 @@
+﻿__pycache__/
+*.pyc
+GPU_Worker/venv/
+**/venv/
+.venv/
+node_modules/
+dist/
+.env
+.env.*
+!**/.env.example
+
+**/pothole_dataset/
+
+# Private or bulky local data
+videos/
+converted_videos/
+gps_traces/
+output_crops/
+runs/
+*.pt
+*.onnx
+*.engine
+*.msi
+*.zip
