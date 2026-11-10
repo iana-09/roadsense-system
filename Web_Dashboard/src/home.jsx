@@ -1,201 +1,170 @@
-import { ChevronRight } from 'lucide-react';
+import { createElement, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MeshGradient } from "@paper-design/shaders-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, BarChart3, Database, Layers3, Linkedin, MapPinned, Menu, Route, ScanSearch, ShieldCheck, Sparkles, Users, X } from 'lucide-react';
+import './home.css';
+
+const team = [
+  { name: 'Nadine Love Ramos', role: 'Project Manager', description: 'Guides the vision, coordination, and delivery of RoadSense.', photo: '/images/team/nadine.jpg', icon: Users, linkedin: 'https://www.linkedin.com/in/nadine-ramos01/' },
+  { name: 'Philip Sebastian D. Peñaranda', role: 'Lead Developer', description: 'Builds the core platform and connects its moving parts.', photo: '/images/team/philip.png', icon: Layers3, linkedin: 'https://www.linkedin.com/in/philip-sebatian-pe%C3%B1aranda-83215a405/' },
+  { name: 'Iana Kim R. Aflleje', role: 'UI Designer / Frontend Developer', description: 'Shapes clear experiences across the platform.', photo: '/images/team/iana.jpg', icon: Sparkles, linkedin: 'https://www.linkedin.com/in/iana-kim-aflleje-4b306b277/' },
+  { name: 'Sofia Beatrice Alexa R. Reyes', role: 'Database Developer', description: 'Organizes the road data behind maps and analysis.', photo: '/images/team/sofia.jpg', icon: Database, linkedin: 'https://www.linkedin.com/in/sofia-beatrice-alexa-reyes-1b3b75380/' },
+];
+
+const processSteps = [
+  { title: 'Detect', description: 'Road imagery is analyzed to identify possible potholes and surface issues.', detail: 'RoadSense analyzes road imagery to find possible potholes and other surface issues. Detected areas are highlighted so teams can review the visual evidence.', icon: ScanSearch, images: [{ src: '/images/workflow/detect.png', alt: 'Road image with two possible potholes highlighted by the detection system', width: 1042, height: 867 }] },
+  { title: 'Verify', description: 'Local government teams review detections before they appear on the public map.', detail: 'Local government reviewers examine each detection with its location, confidence, and original road image before deciding whether it should appear as a verified public hazard.', icon: ShieldCheck, images: [{ src: '/images/workflow/verify-map.png', alt: 'Hazard map showing a pothole review panel with verification controls', width: 1185, height: 677 }, { src: '/images/workflow/verify-frame.png', alt: 'Original road frame showing a detected major pothole' }] },
+  { title: 'Understand', description: 'Explore hazard locations and road health views to guide follow-up work.', detail: 'Maps, route-level road health, and detection records help teams understand where hazards are concentrated and plan follow-up work.', icon: BarChart3, images: [{ src: '/images/workflow/understand-map.png', alt: 'Public map showing clusters of road hazards', width: 1567, height: 631 }, { src: '/images/workflow/understand-health.png', alt: 'Road health dashboard showing route scores and hazard summaries' }, { src: '/images/workflow/understand-detections.png', alt: 'Road detection table with hazard types, severity, and status' }] },
+];
+
+function Brand() {
+  return <a className="home-brand" href="#top" aria-label="RoadSense home"><span className="home-brand-mark"><img src="/roadsense.png" alt="" /></span><strong>RoadSense</strong></a>;
+}
 
 export default function Home() {
   const navigate = useNavigate();
-  const [dimensions, setDimensions] = useState({ width: 1920, height: 1080 });
-  const [mounted, setMounted] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [detail, setDetail] = useState(null);
+  const [slideIndex, setSlideIndex] = useState(0);
+  const closeButtonRef = useRef(null);
+  const modalRef = useRef(null);
+  const previousFocusRef = useRef(null);
+
+  const openDetail = (type, index) => {
+    previousFocusRef.current = document.activeElement;
+    setSlideIndex(0);
+    setDetail({ type, index });
+  };
 
   useEffect(() => {
-    setMounted(true);
-    const update = () =>
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
+    if (!detail) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') setDetail(null);
+      if (detail.type === 'process' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+        const count = processSteps[detail.index].images.length;
+        setSlideIndex((current) => (current + (event.key === 'ArrowRight' ? 1 : -1) + count) % count);
+      }
+      if (event.key === 'Tab') {
+        const focusable = [...modalRef.current.querySelectorAll('button, a[href]')];
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', onKeyDown);
+      previousFocusRef.current?.focus();
+    };
+  }, [detail]);
 
-  return (
-    <div className="relative min-h-screen bg-slate-900 overflow-hidden">
-      {/* MeshGradient Background */}
-      <div className="fixed inset-0 w-screen h-screen">
-        {mounted && (
-          <>
-            <MeshGradient
-              width={dimensions.width}
-              height={dimensions.height}
-              colors={["#0f172a", "#1e293b", "#14b8a6", "#0d9488", "#134e4a", "#083344"]}
-              distortion={0.8}
-              swirl={0.6}
-              grainMixer={0}
-              grainOverlay={0}
-              speed={0.5}
-              offsetX={0.08}
-            />
-            <div className="absolute inset-0 pointer-events-none bg-slate-900/40" />
-          </>
-        )}
-      </div>
-
-      <style>{`
-        @keyframes shine {
-          0% { background-position: -200% center; }
-          100% { background-position: 200% center; }
-        }
-
-        .shiny-text {
-    background: linear-gradient(
-      90deg,
-      #14b8a6 0%,
-      #2dd4bf 25%,
-      #5eead4 50%,
-      #2dd4bf 75%,
-      #14b8a6 100%
-    );
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shine 3s linear infinite;
-    font-weight: 800;
-    filter: drop-shadow(0 0 15px rgba(45, 212, 191, 0.5));
-  }
-      `}</style>
-
-      {/* Overlay gradients for depth */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-slate-900/60 via-transparent to-slate-900/60" />
-      <div className="absolute top-0 z-0 h-screen w-screen bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(45,212,191,0.2),rgba(255,255,255,0))]" />
-
-      {/* Top Navigation Bar */}
-      <nav className="absolute top-0 left-0 right-0 z-50 px-8 py-6 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <img 
-            src="/roadsense.png" 
-            alt="RoadSense Logo" 
-            className="w-10 h-10 object-contain"
-          />
-          <span className="text-xl font-bold text-white">RoadSense</span>
-        </div>
-        
-        <button
-          onClick={() => navigate('/login')}
-          className="px-6 py-2.5 rounded-full text-white font-medium border border-teal-500/30 bg-slate-800/50 backdrop-blur-sm hover:bg-slate-700/50 hover:border-teal-500/50 transition-all"
-        >
-          Login
-        </button>
+  return <div className="home-page" id="top">
+    <header className="home-header"><div className="home-shell home-header-inner">
+      <Brand />
+      <nav className={`home-nav${menuOpen ? ' home-nav-open' : ''}`} aria-label="Main navigation">
+        <a href="#about" onClick={() => setMenuOpen(false)}>About us</a>
+        <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
+        <a href="#team" onClick={() => setMenuOpen(false)}>The team</a>
+        <button className="home-mobile-login" onClick={() => navigate('/login')}>Sign in</button>
       </nav>
+      <div className="home-header-actions"><button className="home-text-button" onClick={() => navigate('/login')}>Sign in</button><button className="home-header-cta" onClick={() => navigate('/guest-dashboard?view=map')}>Explore map <ArrowUpRight size={17} /></button><button className="home-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen}>{menuOpen ? <X size={22} /> : <Menu size={22} />}</button></div>
+    </div></header>
 
-      <section className="relative max-w-full mx-auto z-10">
-        <div className="max-w-screen-xl z-10 mx-auto px-4 py-28 gap-12 md:px-8">
-          <div className="space-y-5 max-w-3xl leading-0 lg:leading-5 mx-auto text-center">
-            {/* Badge */}
-            <h1 className="text-sm text-gray-400 group font-geist mx-auto px-5 py-2 bg-gradient-to-tr from-teal-500/10 via-teal-400/10 to-transparent border-[2px] border-teal-500/20 rounded-3xl w-fit">
-              Smart Road Safety Platform
-              <ChevronRight className="inline w-4 h-4 ml-2 group-hover:translate-x-1 duration-300" />
-            </h1>
-
-            {/* Main Heading */}
-            <h2 className="text-4xl tracking-tighter font-bold md:text-6xl text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400">
-              Drive Safe, Stay Smart with{" "}
-              <span className="shiny-text">
-                RoadSense
-              </span>
-            </h2>
-
-            {/* Description */}
-            <p className="max-w-2xl mx-auto text-gray-300 text-lg">
-              Your intelligent companion for safer journeys. RoadSense monitors road conditions, 
-              tracks safety metrics, and provides real-time alerts to keep you protected on every drive.
-            </p>
-
-            {/* CTA Button with Glass + Gradient */}
-            <div className="items-center justify-center gap-x-3 space-y-3 sm:flex sm:space-y-0 pt-6">
-              <span className="relative inline-block overflow-hidden rounded-full p-[2px]">
-                {/* Animated gradient border */}
-                <span className="absolute inset-[-1000%] animate-[spin_3s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#14b8a6_0%,#06b6d4_25%,#2dd4bf_50%,#06b6d4_75%,#14b8a6_100%)]" />
-                
-                {/* Glass button container */}
-                <div className="relative inline-flex h-full w-full cursor-pointer items-center justify-center rounded-full bg-slate-900/80 backdrop-blur-xl">
-                  <button
-                    onClick={() => navigate('/signup')}
-                    className="relative inline-flex rounded-full text-center group items-center w-full justify-center text-white sm:w-auto py-4 px-10 text-lg font-medium overflow-hidden"
-                  >
-                    {/* Gradient background */}
-                    <span className="absolute inset-0 bg-gradient-to-br from-teal-500/30 via-cyan-400/20 to-teal-600/30 opacity-80 group-hover:opacity-100 transition-opacity duration-300"></span>
-                    
-                    {/* Glass overlay */}
-                    <span className="absolute inset-0 bg-white/5 backdrop-blur-sm"></span>
-                    
-                    {/* Shine effect on hover */}
-                    <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent"></span>
-                    
-                    {/* Button text */}
-                    <span className="relative flex items-center gap-2">
-                      Get Started
-                      <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                    </span>
-                  </button>
-                </div>
-              </span>
-            </div>
-
-            {/* Secondary Info */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-gray-400 pt-8">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
-                <span>Real-time Monitoring</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
-                <span>Instant Alerts</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-teal-400 rounded-full animate-pulse"></div>
-                <span>Safety Reports</span>
-              </div>
-            </div>
+    <main>
+      <section className="home-hero home-shell" aria-labelledby="home-title">
+        <div className="home-hero-copy">
+          <div className="home-hero-heading">
+            <span className="home-hero-mark"><img src="/roadsense.png" alt="" /></span>
+            <h1 id="home-title">Better roads begin with <em>better insight.</em></h1>
           </div>
-
-          {/* Feature Cards */}
-          <div className="mt-24 grid md:grid-cols-3 gap-6 px-4">
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-teal-500/20 rounded-xl p-6 hover:border-teal-500/40 transition-all hover:transform hover:scale-105">
-              <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Safety Monitoring</h3>
-              <p className="text-gray-400">Track road conditions and receive alerts about potential hazards in real-time.</p>
-            </div>
-
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-teal-500/20 rounded-xl p-6 hover:border-teal-500/40 transition-all hover:transform hover:scale-105">
-              <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Analytics & Reports</h3>
-              <p className="text-gray-400">Get detailed insights and analytics about your driving patterns and safety score.</p>
-            </div>
-
-            <div className="bg-slate-800/50 backdrop-blur-sm border border-teal-500/20 rounded-xl p-6 hover:border-teal-500/40 transition-all hover:transform hover:scale-105">
-              <div className="w-12 h-12 bg-teal-500/20 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">Route Tracking</h3>
-              <p className="text-gray-400">Monitor your routes and discover safer alternatives for your daily commute.</p>
-            </div>
+          <div className="home-hero-support">
+            <p>RoadSense turns road hazard detections into a clear picture of street conditions, helping communities and local government teams see what needs attention.</p>
+            <div className="home-hero-actions"><button className="home-button-primary" onClick={() => navigate('/guest-dashboard?view=map')}>Explore the public map <ArrowRight size={18} /></button><a className="home-button-secondary" href="#about">Discover RoadSense <ArrowUpRight size={17} /></a></div>
+            <div className="home-hero-note"><ShieldCheck size={17} /> Public map shows verified road hazards</div>
           </div>
+        </div>
+        <div className="home-hero-showcase" aria-label="RoadSense web and mobile previews">
+          <figure className="home-showcase-figure home-showcase-map">
+            <div className="home-showcase-map-image"><img src="/images/hero/web-map.png" alt="RoadSense public hazard map showing road issues around Imus, Dasmariñas, and nearby cities" width="1507" height="668" fetchPriority="high" /></div>
+            <figcaption className="home-showcase-caption"><span>WEB MAP</span><p>See verified hazards in context.</p></figcaption>
+          </figure>
+          <figure className="home-showcase-figure home-showcase-mobile">
+            <div className="home-showcase-phones" role="img" aria-label="Two original RoadSense iPhone previews showing the mobile dashboard and hazard map"><span className="home-phone-crop home-phone-left" /><span className="home-phone-crop home-phone-right" /></div>
+            <figcaption className="home-showcase-caption"><span>MOBILE APP</span><p>Road insight on the move.</p></figcaption>
+          </figure>
         </div>
       </section>
-    </div>
-  );
+
+      <div className="home-bridge home-shell"><span>BUILT FOR CLEARER DECISIONS</span><div><ShieldCheck size={18} /> Verified hazards</div><div><Route size={18} /> Road health analysis</div><div><BarChart3 size={18} /> Useful reporting</div></div>
+
+      <section className="home-about home-section home-shell" id="about"><div className="home-section-heading"><span className="home-kicker">01 / ABOUT US</span><h2>Technology with a clearer purpose.</h2></div><div className="home-about-grid"><div className="home-about-main"><div className="home-about-symbol"><img src="/roadsense.png" alt="RoadSense logo" /></div><p>RoadSense is a road distress detection and monitoring platform designed to help local governments understand road conditions and prioritize maintenance. It brings hazard detections, map views, and road health analysis into one place.</p><a href="#how-it-works">See how it works <ArrowUpRight size={17} /></a></div><div className="home-about-side"><span><MapPinned size={26} /></span><h3>From detection to direction</h3><p>Location-aware reports make road issues easier to review, verify, and act on.</p><div /><small>Designed for safer communities and more informed road management.</small></div></div></section>
+
+      <section className="home-process home-section" id="how-it-works" aria-labelledby="home-process-title"><div className="home-shell"><div className="home-section-heading"><span className="home-kicker">02 / HOW IT WORKS</span><h2 id="home-process-title">Road data that leads to action.</h2><p>A connected workflow helps turn visual road evidence into information that teams can use.</p></div><ol className="home-process-grid">{processSteps.map(({ title, description, icon, images }, index) => {
+        const thumbnail = images[0];
+        return <li className="home-process-item" key={title}><button className="home-process-card" onClick={() => openDetail('process', index)} aria-label={`Explore step ${index + 1}: ${title}`}>
+          <span className="home-process-media">{thumbnail ? <img src={thumbnail.src} alt={thumbnail.alt} width={thumbnail.width} height={thumbnail.height} loading="lazy" decoding="async" /> : <span className="home-process-placeholder">Image coming soon</span>}<span className="home-process-number">{String(index + 1).padStart(2, '0')}</span></span>
+          <span className="home-process-content"><span className="home-process-icon">{createElement(icon, { size: 25, 'aria-hidden': true })}</span><span className="home-process-title">{title}</span><span className="home-process-description">{description}</span><span className="home-process-action">Explore step <span className="home-process-arrow"><ArrowUpRight size={16} aria-hidden="true" /></span></span></span>
+        </button></li>;
+      })}</ol></div></section>
+
+      <section className="home-team home-section home-shell" id="team" aria-labelledby="home-team-title">
+        <div className="home-team-intro"><div className="home-section-heading"><span className="home-kicker">03 / NOVA TEAM</span><h2 id="home-team-title">People behind the platform.</h2></div><p>RoadSense is brought together by a team working across planning, software, interface design, and data. Meet the roles shaping the project.</p></div>
+        <ul className="home-team-grid">{team.map(({ name, role, description, photo, linkedin }, index) => <li key={name}>
+          <a className="home-team-card" href={linkedin} onClick={(event) => { event.preventDefault(); openDetail('team', index); }} aria-label={`View profile of ${name}`}>
+            <div className="home-team-avatar"><div className="home-team-photo"><img src={photo} alt={`Portrait of ${name}`} width="800" height="800" loading="lazy" /></div></div>
+            <span className="home-team-index">{String(index + 1).padStart(2, '0')}</span>
+            <h3>{name}</h3><p className="home-team-role">{role}</p><p className="home-team-description">{description}</p>
+            <span className="home-team-action">View profile <ArrowUpRight size={16} aria-hidden="true" /></span>
+          </a>
+        </li>)}</ul>
+      </section>
+
+      <section className="home-cta-section home-shell"><div className="home-cta-panel"><div><span className="home-kicker">EXPLORE ROADSENSE</span><h2>A clearer picture of the road starts here.</h2><p>Browse verified hazards as a guest, or sign in to work with your local government dashboard.</p></div><div className="home-cta-actions"><button className="home-button-primary" onClick={() => navigate('/guest-dashboard')}>Explore public view <ArrowRight size={18} /></button><button className="home-button-secondary" onClick={() => navigate('/login')}>Sign in <ArrowUpRight size={17} /></button></div></div></section>
+    </main>
+
+    <footer className="home-footer"><div className="home-shell home-footer-inner"><Brand /><span>© {new Date().getFullYear()} RoadSense. Built by Nova.</span><a href="#top">Back to top ↑</a></div></footer>
+    {detail && (() => {
+      const item = detail.type === 'process' ? processSteps[detail.index] : team[detail.index];
+      const Icon = item.icon;
+      if (detail.type === 'process') {
+        const image = item.images[slideIndex];
+        const showNavigation = item.images.length > 1;
+        return <div className="home-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetail(null); }}>
+          <section ref={modalRef} className="home-lightbox" role="dialog" aria-modal="true" aria-labelledby="home-modal-title">
+            <div className="home-lightbox-stage">
+              <img src={image.src} alt={image.alt} />
+              {showNavigation && <>
+                <button className="home-lightbox-arrow home-lightbox-prev" onClick={() => setSlideIndex((current) => (current - 1 + item.images.length) % item.images.length)} aria-label={`Previous ${item.title} image`}><ArrowLeft size={22} /></button>
+                <button className="home-lightbox-arrow home-lightbox-next" onClick={() => setSlideIndex((current) => (current + 1) % item.images.length)} aria-label={`Next ${item.title} image`}><ArrowRight size={22} /></button>
+                <span className="home-lightbox-count" aria-live="polite">{slideIndex + 1} / {item.images.length}</span>
+              </>}
+            </div>
+            <aside className="home-lightbox-info">
+              <div className="home-lightbox-heading"><span className="home-modal-icon"><Icon size={23} /></span><div><span className="home-kicker">HOW IT WORKS / 0{detail.index + 1}</span><h2 id="home-modal-title">{item.title}</h2></div></div>
+              <p>{item.detail}</p>
+            </aside>
+            <button ref={closeButtonRef} className="home-lightbox-close" onClick={() => setDetail(null)} aria-label="Close details"><X size={22} /></button>
+          </section>
+        </div>;
+      }
+      return <div className="home-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetail(null); }}>
+        <section ref={modalRef} className="home-modal" role="dialog" aria-modal="true" aria-labelledby="home-modal-title">
+          <header className="home-modal-header">
+            <span className="home-modal-icon"><Icon size={23} /></span>
+            <div><span className="home-kicker">NOVA TEAM / 0{detail.index + 1}</span><h2 id="home-modal-title">{item.name}</h2><small>{item.role}</small></div>
+            <button ref={closeButtonRef} className="home-modal-close" onClick={() => setDetail(null)} aria-label="Close details"><X size={21} /></button>
+          </header>
+          <div className="home-modal-body">
+            <p>{item.description}</p>
+            <div className="home-modal-profile"><div className="home-modal-profile-photo"><img src={item.photo} alt={item.name} /></div><span>More about {item.name}'s contributions will be added here.</span></div>
+            <a className="home-modal-linkedin" href={item.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`View ${item.name} on LinkedIn`}><Linkedin size={18} /> View LinkedIn profile <ArrowUpRight size={16} /></a>
+          </div>
+        </section>
+      </div>;
+    })()}
+  </div>;
 }

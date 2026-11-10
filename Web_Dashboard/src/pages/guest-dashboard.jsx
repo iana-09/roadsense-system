@@ -558,7 +558,9 @@ function MainContent({ activePage }) {
 
 // ── Layout ────────────────────────────────────────────────────────────────────
 export default function GuestDashboard() {
-  const [activePage,  setActivePage]  = useState('Dashboard');
+  const [activePage,  setActivePage]  = useState(
+    () => new URLSearchParams(window.location.search).get('view') === 'map' ? 'MapView' : 'Dashboard'
+  );
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (

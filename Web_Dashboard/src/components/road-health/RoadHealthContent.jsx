@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../api';
 import { AuthenticatedImage, DetectionFrameModal } from '../shared/DetectionImage';
+import { CARTO_ATTRIBUTION, CARTO_TILE_URL } from '../map/basemap';
 
 const PH_CENTER = [12.8797, 121.7740];
 const ROUTE_MATCH_METERS = 20;
@@ -291,9 +292,9 @@ export default function RoadHealthContent({ canManage = false }) {
       leafletRef.current = L;
       window.L = L;
       await import('leaflet.markercluster');
-      const map = L.map(mapElementRef.current, { center: PH_CENTER, zoom: 6, zoomControl: false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+      const map = L.map(mapElementRef.current, { center: PH_CENTER, zoom: 6, zoomControl: false, attributionControl: false });
+      L.tileLayer(CARTO_TILE_URL, {
+        attribution: CARTO_ATTRIBUTION,
         className: 'road-health-map-tile',
         maxZoom: 19,
       }).addTo(map);
@@ -671,12 +672,6 @@ export default function RoadHealthContent({ canManage = false }) {
           pointer-events: none;
           background: rgba(7, 18, 38, .08);
         }
-        .road-health-map .leaflet-control-attribution {
-          border-radius: 8px 0 0 0;
-          background: rgba(7, 18, 38, .78) !important;
-          color: #8da2bd;
-        }
-        .road-health-map .leaflet-control-attribution a { color: #bfd0e5; }
         .road-health-marker-pulse {
           position: absolute;
           width: 28px;

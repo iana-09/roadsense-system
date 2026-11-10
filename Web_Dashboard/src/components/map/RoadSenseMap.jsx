@@ -15,6 +15,7 @@ import {
 import api from '../../api';
 import { authHeaders } from '../../auth';
 import { DetectionFrameModal } from '../shared/DetectionImage';
+import { CARTO_ATTRIBUTION, CARTO_TILE_URL } from './basemap';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -57,10 +58,6 @@ function hazardType(detection) {
 function hazardStyle(detection) {
   return HAZARD_STYLE[hazardType(detection)];
 }
-
-// Key-free tiles prevent the production CARTO "API KEY REQUIRED" watermark.
-const TILE_DARK  = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-const TILE_LIGHT = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 function shortPlaceName(place) {
   return place.title || place.display_name?.split(',').slice(0, 2).join(', ') || 'Selected location';
@@ -120,10 +117,6 @@ const CSS = `
     mix-blend-mode:multiply;
   }
   .rsm-wrap .leaflet-control-zoom { display:none !important; }
-  .rsm-wrap .leaflet-control-attribution {
-    font-size:9px !important; opacity:0.35 !important;
-    background:transparent !important; color:#fff !important;
-  }
   .rsm-input {
     width:100%; padding:9px 12px 9px 36px;
     background:${AM.input}; border:1px solid ${AM.inputBdr};
@@ -1244,11 +1237,11 @@ export default function RoadSenseMap({ isGuest = false, className = '', defaultD
 
       const map = Lf.map(mapRef.current, {
         center: PH_CENTER, zoom: DEFAULT_ZOOM,
-        zoomControl: false, attributionControl: true,
+        zoomControl: false, attributionControl: false,
       });
 
-      tileRef.current = Lf.tileLayer(TILE_DARK, {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+      tileRef.current = Lf.tileLayer(CARTO_TILE_URL, {
+        attribution: CARTO_ATTRIBUTION,
         className: 'rsm-apple-tile',
         maxZoom: 19,
       }).addTo(map);
